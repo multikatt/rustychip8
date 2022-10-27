@@ -1,3 +1,5 @@
+use std::fs;
+
 pub struct Chip8 {
     memory: Vec<u8>,
     stack: Vec<u16>,
@@ -22,5 +24,11 @@ impl Chip8 {
         Self { memory, stack, registers, index, pc, sp }
     }
 
-    pub fn load_rom(&self, file_name: &str) {}
+    pub fn load_rom(&mut self, file_name: &str) {
+        // TODO: Start reading at 0x200
+        self.memory = fs::read(file_name).expect("Could not read file");
+        for l in &self.memory {
+            println!("{:#02x}", l);
+        }
+    }
 }
