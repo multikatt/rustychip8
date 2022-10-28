@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, io::Error};
 
 pub struct Chip8 {
     memory: Vec<u8>,
@@ -24,21 +24,34 @@ impl Chip8 {
         Self { memory, stack, registers, index, pc, sp }
     }
 
-    pub fn load_rom(&mut self, file_name: &str) {
+    pub fn load_rom(&mut self, file_name: &str) -> Result<(), Error> {
         // TODO: Start reading at 0x200
-        self.memory = fs::read(file_name).expect("Could not read file");
+        self.memory = fs::read(file_name)?;
         // for l in &self.memory {
         //     println!("{:#02x}", l);
         // }
+        Ok(())
     }
 
-    pub fn fetch(&mut self) -> u16 {
-        let mut first = self.memory[self.pc as usize] as u16;
+    pub fn fetch(&mut self) -> Result<u16, ()> {
+        // let mut first = self.memory[self.pc as usize] as u16;
+        let fist = self.memory.get(self.pc as usize);
+        let mut first;
+        match fist {
+            Some(x) => first = *x as u16,
+            None => return Err(()),
+        }
+
+        // match self.memory[self.pc as usize] as u16 {
+        //     3 => {}
+        //     Err(err) => println!("{}", err),
+        // }
         self.pc += 1;
         let second = self.memory[self.pc as usize] as u16;
         first = first << 8;
         self.pc += 1;
-        return first + second;
+        print!("{:#06x} {:#06x}:  ", self.pc, first + second);
+        Ok(first + second)
     }
 
     // pub fn fetch(&self) -> u16 {
@@ -53,11 +66,29 @@ impl Chip8 {
     //     return one;
     // }
 
-    // pub fn decode(&mut self) {
-    //     let next = self.fetch();
-    //     match next {
-    //         Some(expr) => expr,
-    //         None => expr,
-    //     }
-    // }
+    pub fn decode(&mut self) {
+        let next = self.fetch().unwrap();
+        let cat: u8 = (next >> 12).try_into().unwrap();
+        match cat {
+            0x0 => match next {
+                0x00e0 => {
+                    println!("clear screen");
+                }
+                _ => println!("{:#04x} instruction not found.", next),
+            },
+            0x1 => {
+                println!("Jump to");
+            }
+            0x6 => {
+                println!("Set register");
+            }
+            0x7 => {
+                println!("Add to register");
+            }
+            0xa => {
+                println!("Set index register");
+            }
+            _ => println!("{:#04x} {:#04x} not implemented!", cat, next),
+        }
+    }
 }
