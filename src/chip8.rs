@@ -15,9 +15,9 @@ pub struct Chip8 {
 
 impl Chip8 {
     pub fn new() -> Self {
-        let memory = Vec::with_capacity(4096);
-        let stack = Vec::with_capacity(16);
-        let registers = Vec::with_capacity(16);
+        let memory = vec![0; 4096];
+        let stack = vec![0; 16];
+        let registers = vec![0; 16];
         let index = 0x0;
         let pc = 0x1ff;
         let sp = 0x0;
@@ -44,8 +44,8 @@ impl Chip8 {
         self.pc += 1;
         let second = self.memory[self.pc as usize] as u16;
         first = first << 8;
-        self.pc += 1;
         print!("{:#06x} {:#06x}:  ", self.pc, first + second);
+        self.pc += 1;
         Ok(first + second)
     }
 
@@ -60,16 +60,26 @@ impl Chip8 {
                 _ => println!("{:#06x} instruction not found.", next),
             },
             0x1 => {
-                println!("Jump to");
+                println!("Jump to {:#06x}", next & 0x0fff);
+                self.pc = next & 0x0fff;
+                self.pc -= 1; // Why is this needed?
             }
             0x6 => {
-                println!("Set register");
+                let reg = (next & 0x0f00) >> 8;
+                println!("Set register {:#06x} to {:#06x}", reg, next & 0x00ff);
+                self.registers[reg as usize] = (next & 0x00ff) as u8;
             }
             0x7 => {
-                println!("Add to register");
+                let reg = (next & 0x0f00) >> 8;
+                println!("Adding {:#06x} to register {:#06x}", next & 0x00ff, reg);
+                self.registers[reg as usize] = self.registers[reg as usize] + (next & 0x00ff) as u8;
             }
             0xa => {
-                println!("Set index register");
+                println!("Set index register to {:#06x}", next & 0x0fff);
+                self.index = next & 0x0fff;
+            }
+            0xd => {
+                println!("draw");
             }
             _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
         }
