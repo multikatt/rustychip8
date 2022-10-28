@@ -1,12 +1,37 @@
 #![allow(dead_code)]
 
 use chip8::Chip8;
+use graphics::Graphics;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+use std::time::Duration;
 
 pub mod chip8;
+pub mod graphics;
 
 fn main() {
     let mut c8 = Chip8::new();
-    c8.load_rom("roms/test.ch8");
-    println!("{:#04x}", c8.fetch());
-    println!("{:#04x}", c8.fetch());
+    match c8.load_rom("roms/IBMLogo.ch8") {
+        Ok(()) => {}
+        Err(err) => panic!("{}", err),
+    }
+
+    let mut gfx = Graphics::new();
+    gfx.clear();
+
+    let mut event_pump = gfx.context.event_pump().unwrap();
+    'running: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    break 'running
+                }
+                _ => {}
+            }
+        }
+        c8.decode();
+
+        gfx.canvas.present();
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+    }
 }
