@@ -19,22 +19,21 @@ impl Chip8 {
         let stack = Vec::with_capacity(16);
         let registers = Vec::with_capacity(16);
         let index = 0x0;
-        let pc = 0x0;
+        let pc = 0x1ff;
         let sp = 0x0;
         Self { memory, stack, registers, index, pc, sp }
     }
 
     pub fn load_rom(&mut self, file_name: &str) -> Result<(), Error> {
-        // TODO: Start reading at 0x200
-        self.memory = fs::read(file_name)?;
-        // for l in &self.memory {
-        //     println!("{:#02x}", l);
-        // }
+        let mut tmp = fs::read(file_name)?;
+        let mut buf = vec![0; 0x1ff];
+        buf.append(&mut tmp);
+        self.memory = buf;
+
         Ok(())
     }
 
     pub fn fetch(&mut self) -> Result<u16, ()> {
-        // let mut first = self.memory[self.pc as usize] as u16;
         let fist = self.memory.get(self.pc as usize);
         let mut first;
         match fist {
@@ -42,10 +41,6 @@ impl Chip8 {
             None => return Err(()),
         }
 
-        // match self.memory[self.pc as usize] as u16 {
-        //     3 => {}
-        //     Err(err) => println!("{}", err),
-        // }
         self.pc += 1;
         let second = self.memory[self.pc as usize] as u16;
         first = first << 8;
@@ -53,18 +48,6 @@ impl Chip8 {
         print!("{:#06x} {:#06x}:  ", self.pc, first + second);
         Ok(first + second)
     }
-
-    // pub fn fetch(&self) -> u16 {
-    //     let mut one = self.memory[self.pc as usize] as u16;
-    //     let two = self.memory[self.pc as usize + 1] as u16;
-    //     println!("{:#02x}", one);
-    //     one = one << 8;
-    //     println!("{:#02x}", one);
-    //     let three = one + two;
-    //     println!("{:#02x}", two);
-    //     println!("{:#04x}", three);
-    //     return one;
-    // }
 
     pub fn decode(&mut self) {
         let next = self.fetch().unwrap();
@@ -74,7 +57,7 @@ impl Chip8 {
                 0x00e0 => {
                     println!("clear screen");
                 }
-                _ => println!("{:#04x} instruction not found.", next),
+                _ => println!("{:#06x} instruction not found.", next),
             },
             0x1 => {
                 println!("Jump to");
@@ -88,7 +71,7 @@ impl Chip8 {
             0xa => {
                 println!("Set index register");
             }
-            _ => println!("{:#04x} {:#04x} not implemented!", cat, next),
+            _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
         }
     }
 }
