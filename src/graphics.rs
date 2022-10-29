@@ -11,6 +11,12 @@ pub struct Graphics {
     pixel_size: u32,
 }
 
+impl Default for Graphics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Graphics {
     pub fn new() -> Self {
         let context = sdl2::init().unwrap();
@@ -36,10 +42,10 @@ impl Graphics {
 
     pub fn draw(&mut self, c8: &Chip8) {
         self.canvas.set_draw_color(Color::RGB(255, 128, 0));
-        let mut i: u16 = 0;
-        for p in &c8.display {
+
+        for (i, p) in c8.display.iter().enumerate() {
             if *p {
-                let pos = c8.get_xy_from_pixel(i);
+                let pos = c8.get_xy_from_pixel(i as u16);
                 let posx = pos.0 as u32;
                 let posy = pos.1 as u32;
 
@@ -51,7 +57,6 @@ impl Graphics {
                 );
                 self.canvas.fill_rect(new_rect).unwrap();
             }
-            i += 1;
         }
 
         self.canvas.present();

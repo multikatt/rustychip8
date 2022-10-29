@@ -16,6 +16,12 @@ pub struct Chip8 {
     */
 }
 
+impl Default for Chip8 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Chip8 {
     pub fn new() -> Self {
         let width = 64;
@@ -40,16 +46,16 @@ impl Chip8 {
     }
 
     pub fn fetch(&mut self) -> Result<u16, ()> {
-        let fist = self.memory.get(self.pc as usize); // TODO
+        let check_if_empty = self.memory.get(self.pc as usize); // TODO
         let mut first;
-        match fist {
+        match check_if_empty {
             Some(x) => first = *x as u16,
             None => return Err(()),
         }
 
         self.pc += 1;
         let second = self.memory[self.pc as usize] as u16;
-        first = first << 8;
+        first <<= 8;
         print!("{:#06x} {:#06x}:  ", self.pc, first + second);
         self.pc += 1;
         Ok(first + second)
@@ -74,7 +80,7 @@ impl Chip8 {
                     let pos = self.get_pixel_from_xy(xcoord + x, ycoord + y) as usize;
                     self.display[pos] = true;
                 }
-                sprite_data = sprite_data << 1;
+                sprite_data <<= 1;
             }
         }
     }
@@ -103,8 +109,7 @@ impl Chip8 {
                 0x7 => {
                     let reg = (next & 0x0f00) >> 8;
                     println!("Adding {:#06x} to register {:#06x}", next & 0x00ff, reg);
-                    self.registers[reg as usize] =
-                        self.registers[reg as usize] + (next & 0x00ff) as u8;
+                    self.registers[reg as usize] += (next & 0x00ff) as u8;
                 }
                 0xa => {
                     println!("Set index register to {:#06x}", next & 0x0fff);
