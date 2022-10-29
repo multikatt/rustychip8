@@ -68,7 +68,7 @@ impl Chip8 {
     fn set_display(&mut self, sprite_height: u16, xcoord: u16, ycoord: u16) {
         for y in 0..sprite_height {
             let mut sprite_data = self.memory[(self.index + y) as usize];
-            for x in 0..7 {
+            for x in 0..8 {
                 if sprite_data & 0b10000000 != 0 {
                     println!("y:{} x:{} xcoord:{} ycoord:{}", y, x, xcoord, ycoord);
                     let pos = self.get_pixel_from_xy(xcoord + x, ycoord + y) as usize;
