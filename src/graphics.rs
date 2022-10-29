@@ -40,10 +40,15 @@ impl Graphics {
         for p in &c8.display {
             if *p {
                 let pos = c8.get_xy_from_pixel(i);
-                let posx = (pos.0 as u32 + (self.pixel_size / 2)) as i32;
-                let posy = (pos.1 as u32 + (self.pixel_size / 2)) as i32;
+                let posx = pos.0 as u32;
+                let posy = pos.1 as u32;
 
-                let new_rect = Rect::new(posx, posy, self.pixel_size, self.pixel_size);
+                let new_rect = Rect::new(
+                    (posx * self.pixel_size) as i32,
+                    (posy * self.pixel_size) as i32,
+                    self.pixel_size,
+                    self.pixel_size,
+                );
                 self.canvas.fill_rect(new_rect).unwrap();
             }
             i += 1;
