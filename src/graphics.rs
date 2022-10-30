@@ -5,6 +5,7 @@ use sdl2::Sdl;
 
 use crate::chip8::Chip8;
 
+
 pub struct Graphics {
     pub canvas: Canvas<sdl2::video::Window>,
     pub context: Sdl,

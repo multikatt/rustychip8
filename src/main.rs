@@ -1,13 +1,10 @@
 #![allow(dead_code)]
 
-use chip8::Chip8;
-use graphics::Graphics;
+use chip8::graphics::Graphics;
+use chip8::chip8::Chip8;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
-
-pub mod chip8;
-pub mod graphics;
 
 fn main() {
     let mut c8 = Chip8::new();
