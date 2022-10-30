@@ -4,11 +4,21 @@ use chip8::chip8::Chip8;
 use chip8::graphics::Graphics;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use std::env;
 use std::time::Duration;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
     let mut c8 = Chip8::new();
-    match c8.load_rom("roms/IBMLogo.ch8") {
+
+    let mut filename = &String::from("roms/tank.ch8");
+
+    if args.len() > 1 {
+        filename = &args[1];
+    }
+
+    match c8.load_rom(&filename) {
         Ok(()) => {}
         Err(err) => panic!("{}", err),
     }
