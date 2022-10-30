@@ -111,12 +111,20 @@ impl Chip8 {
                     println!("clear screen");
                     self.clear_display();
                 }
+                0x00ee => {
+                    println!("Return from subroutine");
+                    self.pc = self.stack.pop().unwrap();
+                }
                 _ => println!("{:#06x} instruction not found.", next),
             },
             0x1 => {
-                // println!("Jump to {:#06x}", next & 0x0fff);
                 self.pc = next & 0x0fff;
-                self.pc -= 1; // Why is this needed?
+                self.pc -= 1;
+            }
+            0x2 => {
+                self.stack.push(self.pc);
+                self.pc = next & 0x0fff;
+                self.pc -= 1;
             }
             0x6 => {
                 let reg = (next & 0x0f00) >> 8;
