@@ -16,7 +16,7 @@ fn main() {
         Err(err) => panic!("{}", err),
     }
 
-    let mut gfx = Graphics::new();
+    let mut gfx = Graphics::new(true);
     gfx.clear();
 
     let mut event_pump = gfx.context.event_pump().unwrap();
