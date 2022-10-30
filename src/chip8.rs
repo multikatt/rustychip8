@@ -126,6 +126,22 @@ impl Chip8 {
                 self.pc = next & 0x0fff;
                 self.pc -= 1;
             }
+            0x3 => {
+                let reg = (next & 0x0f00) >> 8;
+                let cmp = (next & 0x00ff) as u8;
+                println!("SE {:#06x} {:#06x}", reg, cmp);
+                if self.registers[reg as usize] == cmp {
+                    self.pc += 2;
+                }
+            }
+            0x4 => {
+                let reg = (next & 0x0f00) >> 8;
+                let cmp = (next & 0x00ff) as u8;
+                println!("SNE {:#06x} {:#06x}", reg, cmp);
+                if self.registers[reg as usize] != cmp {
+                    self.pc += 2;
+                }
+            }
             0x6 => {
                 let reg = (next & 0x0f00) >> 8;
                 println!("Set register {:#06x} to {:#06x}", reg, next & 0x00ff);
