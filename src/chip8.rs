@@ -76,8 +76,16 @@ impl Chip8 {
             let mut sprite_data = self.memory[(self.index + y) as usize];
             for x in 0..8 {
                 if sprite_data & 0b10000000 != 0 {
-                    println!("y:{} x:{} xcoord:{} ycoord:{}", y, x, xcoord, ycoord);
-                    let pos = self.get_pixel_from_xy(xcoord + x, ycoord + y) as usize;
+                    println!(
+                        "y:{} x:{} xcoord:{} ycoord:{} / abs x {} y {}",
+                        y,
+                        x,
+                        xcoord,
+                        ycoord,
+                        (xcoord + x) % 64,
+                        (ycoord + y) % 32
+                    );
+                    let pos = self.get_pixel_from_xy((xcoord + x) % 64, (ycoord + y) % 32) as usize;
                     self.display[pos] = true;
                 }
                 sprite_data <<= 1;
