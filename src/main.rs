@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use chip8::graphics::Graphics;
 use chip8::chip8::Chip8;
+use chip8::graphics::Graphics;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
@@ -26,10 +26,14 @@ fn main() {
                 _ => {}
             }
         }
-        c8.decode();
-        gfx.draw(&c8);
+        match c8.decode() {
+            Ok(()) => {
+                gfx.draw(&c8);
 
-        gfx.canvas.present();
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+                gfx.canvas.present();
+                ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            }
+            Err(()) => (),
+        }
     }
 }

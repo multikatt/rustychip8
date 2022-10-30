@@ -85,50 +85,49 @@ impl Chip8 {
         }
     }
 
-    pub fn decode(&mut self) {
-        let next = self.fetch().unwrap_or(0); // TODO
-        if next != 0 {
-            let cat: u8 = (next >> 12).try_into().unwrap();
-            match cat {
-                0x0 => match next {
-                    0x00e0 => {
-                        println!("clear screen");
-                    }
-                    _ => println!("{:#06x} instruction not found.", next),
-                },
-                0x1 => {
-                    // println!("Jump to {:#06x}", next & 0x0fff);
-                    self.pc = next & 0x0fff;
-                    self.pc -= 1; // Why is this needed?
+    pub fn decode(&mut self) -> Result<(), ()> {
+        let next = self.fetch()?;
+        let cat: u8 = (next >> 12).try_into().unwrap();
+        match cat {
+            0x0 => match next {
+                0x00e0 => {
+                    println!("clear screen");
                 }
-                0x6 => {
-                    let reg = (next & 0x0f00) >> 8;
-                    println!("Set register {:#06x} to {:#06x}", reg, next & 0x00ff);
-                    self.registers[reg as usize] = (next & 0x00ff) as u8;
-                }
-                0x7 => {
-                    let reg = (next & 0x0f00) >> 8;
-                    println!("Adding {:#06x} to register {:#06x}", next & 0x00ff, reg);
-                    self.registers[reg as usize] += (next & 0x00ff) as u8;
-                }
-                0xa => {
-                    println!("Set index register to {:#06x}", next & 0x0fff);
-                    self.index = next & 0x0fff;
-                    self.index -= 1;
-                }
-                0xd => {
-                    let sprite_height = next & 0x000f;
-                    let vx = (next & 0x0f00) >> 8;
-                    let vy = (next & 0x00f0) >> 4;
-                    let xcoord = self.registers[vx as usize] as u16;
-                    let ycoord = self.registers[vy as usize] as u16;
-
-                    println!("Draw an {} pixels tall sprite from the memory location that the I index register is holding ({:#06x}) to the screen, at the horizontal X coordinate {} in VX ({:#06x}) and the Y {} coordinate in VY ({:#06x})", sprite_height, self.index, xcoord, vx, ycoord, vy );
-
-                    self.set_display(sprite_height, xcoord, ycoord);
-                }
-                _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
+                _ => println!("{:#06x} instruction not found.", next),
+            },
+            0x1 => {
+                // println!("Jump to {:#06x}", next & 0x0fff);
+                self.pc = next & 0x0fff;
+                self.pc -= 1; // Why is this needed?
             }
+            0x6 => {
+                let reg = (next & 0x0f00) >> 8;
+                println!("Set register {:#06x} to {:#06x}", reg, next & 0x00ff);
+                self.registers[reg as usize] = (next & 0x00ff) as u8;
+            }
+            0x7 => {
+                let reg = (next & 0x0f00) >> 8;
+                println!("Adding {:#06x} to register {:#06x}", next & 0x00ff, reg);
+                self.registers[reg as usize] += (next & 0x00ff) as u8;
+            }
+            0xa => {
+                println!("Set index register to {:#06x}", next & 0x0fff);
+                self.index = next & 0x0fff;
+                self.index -= 1;
+            }
+            0xd => {
+                let sprite_height = next & 0x000f;
+                let vx = (next & 0x0f00) >> 8;
+                let vy = (next & 0x00f0) >> 4;
+                let xcoord = self.registers[vx as usize] as u16;
+                let ycoord = self.registers[vy as usize] as u16;
+
+                println!("Draw an {} pixels tall sprite from the memory location that the I index register is holding ({:#06x}) to the screen, at the horizontal X coordinate {} in VX ({:#06x}) and the Y {} coordinate in VY ({:#06x})", sprite_height, self.index, xcoord, vx, ycoord, vy );
+
+                self.set_display(sprite_height, xcoord, ycoord);
+            }
+            _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
         }
+        Ok(())
     }
 }
