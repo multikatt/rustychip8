@@ -71,7 +71,7 @@ impl Chip8 {
         (x as u8, y as u8)
     }
 
-    fn set_display(&mut self, sprite_height: u16, xcoord: u16, ycoord: u16) {
+    fn set_sprite(&mut self, sprite_height: u16, xcoord: u16, ycoord: u16) {
         for y in 0..sprite_height {
             let mut sprite_data = self.memory[(self.index + y) as usize];
             for x in 0..8 {
@@ -93,6 +93,15 @@ impl Chip8 {
         }
     }
 
+    fn clear_display(&mut self) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let pos = self.get_pixel_from_xy(x, y) as usize;
+                self.display[pos] = false;
+            }
+        }
+    }
+
     pub fn decode(&mut self) -> Result<(), ()> {
         let next = self.fetch()?;
         let cat: u8 = (next >> 12).try_into().unwrap();
@@ -100,6 +109,7 @@ impl Chip8 {
             0x0 => match next {
                 0x00e0 => {
                     println!("clear screen");
+                    self.clear_display();
                 }
                 _ => println!("{:#06x} instruction not found.", next),
             },
@@ -132,7 +142,7 @@ impl Chip8 {
 
                 println!("Draw an {} pixels tall sprite from the memory location that the I index register is holding ({:#06x}) to the screen, at the horizontal X coordinate {} in VX ({:#06x}) and the Y {} coordinate in VY ({:#06x})", sprite_height, self.index, xcoord, vx, ycoord, vy );
 
-                self.set_display(sprite_height, xcoord, ycoord);
+                self.set_sprite(sprite_height, xcoord, ycoord);
             }
             _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
         }
