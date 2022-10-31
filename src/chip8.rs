@@ -31,14 +31,14 @@ impl Chip8 {
         let registers = vec![0; 16];
         let display = vec![false; 2048];
         let index = 0x0;
-        let pc = 0x1ff;
+        let pc = 0x200;
         let sp = 0x0;
         Self { width, height, memory, stack, registers, display, index, pc, sp }
     }
 
     pub fn load_rom(&mut self, file_name: &str) -> Result<(), Error> {
         let mut tmp = fs::read(file_name)?;
-        let mut buf = vec![0; 0x1ff];
+        let mut buf = vec![0; 0x200];
         buf.append(&mut tmp);
         self.memory = buf;
 
@@ -52,11 +52,11 @@ impl Chip8 {
             Some(x) => first = *x as u16,
             None => return Err(()),
         }
-
+        print!("{:#06x} ", self.pc);
         self.pc += 1;
         let second = self.memory[self.pc as usize] as u16;
         first <<= 8;
-        print!("{:#06x} {:#06x}:  ", self.pc, first + second);
+        print!("{:#06x}:  ", first + second);
         self.pc += 1;
         Ok(first + second)
     }
@@ -119,12 +119,10 @@ impl Chip8 {
             },
             0x1 => {
                 self.pc = next & 0x0fff;
-                self.pc -= 1;
             }
             0x2 => {
                 self.stack.push(self.pc);
                 self.pc = next & 0x0fff;
-                self.pc -= 1;
             }
             0x3 => {
                 let reg = (next & 0x0f00) >> 8;
@@ -159,7 +157,6 @@ impl Chip8 {
             0xa => {
                 println!("Set index register to {:#06x}", next & 0x0fff);
                 self.index = next & 0x0fff;
-                self.index -= 1;
             }
             0xd => {
                 let sprite_height = next & 0x000f;
