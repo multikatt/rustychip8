@@ -76,15 +76,15 @@ impl Chip8 {
             let mut sprite_data = self.memory[(self.index + y) as usize];
             for x in 0..8 {
                 if sprite_data & 0b10000000 != 0 {
-                    println!(
-                        "y:{} x:{} xcoord:{} ycoord:{} / abs x {} y {}",
-                        y,
-                        x,
-                        xcoord,
-                        ycoord,
-                        (xcoord + x) % 64,
-                        (ycoord + y) % 32
-                    );
+                    // println!(
+                    //     "y:{} x:{} xcoord:{} ycoord:{} / abs x {} y {}",
+                    //     y,
+                    //     x,
+                    //     xcoord,
+                    //     ycoord,
+                    //     (xcoord + x) % 64,
+                    //     (ycoord + y) % 32
+                    // );
                     let pos = self.get_pixel_from_xy((xcoord + x) % 64, (ycoord + y) % 32) as usize;
                     self.display[pos] = true;
                 }
@@ -192,6 +192,42 @@ impl Chip8 {
                     3 => {
                         self.registers[vx as usize] =
                             self.registers[vx as usize] ^ self.registers[vy as usize]
+                    }
+                    4 => {
+                        let res = self.registers[vx as usize]
+                            .overflowing_add(self.registers[vy as usize]);
+                        self.registers[vx as usize] = res.0;
+                        if res.1 {
+                            self.registers[0xf] = 1;
+                        } else {
+                            self.registers[0xf] = 0;
+                        }
+                    }
+                    n @ (5 | 7) => {
+                        let res;
+                        let mut set_flag = false;
+
+                        if n == 5 {
+                            res = self.registers[vx as usize]
+                                .overflowing_sub(self.registers[vy as usize]);
+                            if self.registers[vx as usize] > self.registers[vy as usize] {
+                                set_flag = true
+                            }
+                        } else if n == 7 {
+                            res = self.registers[vy as usize]
+                                .overflowing_sub(self.registers[vx as usize]);
+                            if self.registers[vx as usize] < self.registers[vy as usize] {
+                                set_flag = true
+                            }
+                        } else {
+                            panic!("Trying to subtract empty registers");
+                        }
+                        self.registers[vx as usize] = res.0;
+                        if set_flag {
+                            self.registers[0xf] = 1;
+                        } else {
+                            self.registers[0xf] = 0;
+                        }
                     }
                     _ => println!("not implemented"),
                 }
@@ -325,6 +361,64 @@ fn test_0x7() {
     c8.pc = 0x200;
     c8.decode().unwrap();
     assert_eq!(c8.registers[0x0], 0x01);
+}
+
+#[test]
+fn test_0x8xy4() {
+    let mut c8 = Chip8::new();
+    c8.registers[0x0] = 0x05;
+    c8.registers[0x1] = 0x02;
+    c8.memory[0x200] = 0x80;
+    c8.memory[0x201] = 0x14;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.registers[0x0], 0x07);
+    assert_eq!(c8.registers[0xf], 0x00);
+
+    c8.registers[0x0] = 0xff;
+    c8.registers[0x1] = 0x02;
+
+    c8.pc = 0x200;
+    c8.decode().unwrap();
+
+    assert_eq!(c8.registers[0x0], 0x01);
+    assert_eq!(c8.registers[0xf], 0x01);
+}
+
+#[test]
+fn test_0x8xy_5_and_7() {
+    // 5
+    let mut c8 = Chip8::new();
+    c8.registers[0x0] = 0x05;
+    c8.registers[0x1] = 0x02;
+    c8.memory[0x200] = 0x80;
+    c8.memory[0x201] = 0x15;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.registers[0x0], 0x03);
+    assert_eq!(c8.registers[0xf], 0x01);
+
+    c8.registers[0x0] = 0x00;
+    c8.registers[0x1] = 0x01;
+
+    c8.pc = 0x200;
+    c8.decode().unwrap();
+
+    assert_eq!(c8.registers[0x0], 0xff);
+    assert_eq!(c8.registers[0xf], 0x00);
+
+    // 7
+    c8.registers[0x0] = 0x03;
+    c8.registers[0x1] = 0x05;
+    c8.memory[0x200] = 0x80;
+    c8.memory[0x201] = 0x17;
+
+    c8.pc = 0x200;
+    c8.decode().unwrap();
+
+    assert_eq!(c8.registers[0x0], 0x02);
 }
 
 #[test]
