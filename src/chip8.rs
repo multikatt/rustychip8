@@ -205,7 +205,7 @@ fn test_0x2() {
     assert_eq!(c8.stack[0], 0x00);
     c8.decode().unwrap();
     assert_eq!(c8.pc, 0x111);
-    assert_eq!(c8.stack[16], 0x202);
+    assert_eq!(c8.stack[0], 0x202);
 }
 
 #[test]
@@ -218,4 +218,13 @@ fn test_0x7() {
     c8.decode().unwrap();
 
     assert_eq!(c8.registers[0x0], 0x02);
+}
+
+#[test]
+fn test_pixel_getters() {
+    let c8 = Chip8::new();
+    assert_eq!(c8.get_pixel_from_xy(5, 0), 5);
+    assert_eq!(c8.get_pixel_from_xy(1, 1), 65);
+    assert_eq!(c8.get_xy_from_pixel(65), (1, 1));
+    assert_eq!(c8.get_xy_from_pixel(5), (5, 0));
 }
