@@ -1,4 +1,4 @@
-use std::{fs, io::Error, num::Wrapping};
+use std::{fs, io::Error};
 
 pub struct Chip8 {
     width: u16,
@@ -170,11 +170,9 @@ impl Chip8 {
             0x7 => {
                 let reg = (next & 0x0f00) >> 8;
                 println!("Adding {:#06x} to register {:#06x}", next & 0x00ff, reg);
-                println!("{:#06x}", self.registers[reg as usize]);
-                // Use wrapping since adding can lead to overflow
-                let addval = Wrapping((next & 0x00ff) as u8);
-                let regval = Wrapping(self.registers[reg as usize]);
-                self.registers[reg as usize] = (regval + addval).0;
+
+                self.registers[reg as usize] =
+                    self.registers[reg as usize].overflowing_add((next & 0x00ff) as u8).0;
             }
             0x8 => {
                 let vx = (next & 0x0f00) >> 8;
