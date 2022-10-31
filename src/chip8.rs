@@ -151,8 +151,8 @@ impl Chip8 {
                 println!("{:#06x}", self.registers[reg as usize]);
                 // Use wrapping since adding can lead to overflow
                 let addval = Wrapping((next & 0x00ff) as u8);
-                let mut regval = Wrapping(self.registers[reg as usize]);
-                regval += addval;
+                let regval = Wrapping(self.registers[reg as usize]);
+                self.registers[reg as usize] = (regval + addval).0;
             }
             0xa => {
                 println!("Set index register to {:#06x}", next & 0x0fff);
@@ -209,13 +209,18 @@ fn test_0x2() {
 #[test]
 fn test_0x7() {
     let mut c8 = Chip8::new();
-    c8.memory[0x200] = 0x7;
-    c8.memory[0x201] = 0x1;
     c8.registers[0x0] = 0x01;
+    c8.memory[0x200] = 0x70;
+    c8.memory[0x201] = 0x02;
 
     c8.decode().unwrap();
 
-    assert_eq!(c8.registers[0x0], 0x02);
+    assert_eq!(c8.registers[0x0], 0x03);
+
+    c8.registers[0x0] = 0xFF;
+    c8.pc = 0x200;
+    c8.decode().unwrap();
+    assert_eq!(c8.registers[0x0], 0x01);
 }
 
 #[test]
