@@ -176,6 +176,28 @@ impl Chip8 {
                 let regval = Wrapping(self.registers[reg as usize]);
                 self.registers[reg as usize] = (regval + addval).0;
             }
+            0x8 => {
+                let vx = (next & 0x0f00) >> 8;
+                let vy = (next & 0x00f0) >> 4;
+                let cmd = next & 0x000f;
+
+                match cmd {
+                    0 => self.registers[vx as usize] = self.registers[vy as usize],
+                    1 => {
+                        self.registers[vx as usize] =
+                            self.registers[vx as usize] | self.registers[vy as usize]
+                    }
+                    2 => {
+                        self.registers[vx as usize] =
+                            self.registers[vx as usize] & self.registers[vy as usize]
+                    }
+                    3 => {
+                        self.registers[vx as usize] =
+                            self.registers[vx as usize] ^ self.registers[vy as usize]
+                    }
+                    _ => println!("not implemented"),
+                }
+            }
             0xa => {
                 println!("Set index register to {:#06x}", next & 0x0fff);
                 self.index = next & 0x0fff;
