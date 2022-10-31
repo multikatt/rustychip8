@@ -207,20 +207,24 @@ impl Chip8 {
                         let res;
                         let mut set_flag = false;
 
-                        if n == 5 {
-                            res = self.registers[vx as usize]
-                                .overflowing_sub(self.registers[vy as usize]);
-                            if self.registers[vx as usize] > self.registers[vy as usize] {
-                                set_flag = true
+                        match n {
+                            5 => {
+                                res = self.registers[vx as usize]
+                                    .overflowing_sub(self.registers[vy as usize]);
+                                if self.registers[vx as usize] > self.registers[vy as usize] {
+                                    set_flag = true
+                                }
                             }
-                        } else if n == 7 {
-                            res = self.registers[vy as usize]
-                                .overflowing_sub(self.registers[vx as usize]);
-                            if self.registers[vx as usize] < self.registers[vy as usize] {
-                                set_flag = true
+                            7 => {
+                                res = self.registers[vy as usize]
+                                    .overflowing_sub(self.registers[vx as usize]);
+                                if self.registers[vx as usize] < self.registers[vy as usize] {
+                                    set_flag = true
+                                }
                             }
-                        } else {
-                            panic!("Trying to subtract empty registers");
+                            _ => {
+                                panic!("Trying to subtract empty registers");
+                            }
                         }
                         self.registers[vx as usize] = res.0;
                         if set_flag {
@@ -229,6 +233,17 @@ impl Chip8 {
                             self.registers[0xf] = 0;
                         }
                     }
+                    n @ (0x6 | 0xE) => {
+                        // TODO: Set VF
+                        let mut vxval = self.registers[((next & 0x0f00) >> 8) as usize];
+                        match n {
+                            0x6 => vxval >>= 4,
+                            0xE => vxval <<= 4,
+                            _ => panic!("Trying to shift empty register"),
+                        };
+                        self.registers[((next & 0x0f00) >> 8) as usize] = vxval;
+                    }
+
                     _ => println!("not implemented"),
                 }
             }
