@@ -140,6 +140,28 @@ impl Chip8 {
                     self.pc += 2;
                 }
             }
+            0x5 => {
+                let cmpx = (next & 0x0f00) >> 8;
+                let cmpy = (next & 0x00f0) >> 4;
+                println!(
+                    "SE {:#06x} {:#06x}",
+                    self.registers[cmpx as usize], self.registers[cmpy as usize]
+                );
+                if self.registers[cmpx as usize] == self.registers[cmpy as usize] {
+                    self.pc += 2;
+                }
+            }
+            0x9 => {
+                let cmpx = (next & 0x0f00) >> 8;
+                let cmpy = (next & 0x00f0) >> 4;
+                println!(
+                    "SNE {:#06x} {:#06x}",
+                    self.registers[cmpx as usize], self.registers[cmpy as usize]
+                );
+                if self.registers[cmpx as usize] != self.registers[cmpy as usize] {
+                    self.pc += 2;
+                }
+            }
             0x6 => {
                 let reg = (next & 0x0f00) >> 8;
                 println!("Set register {:#06x} to {:#06x}", reg, next & 0x00ff);
@@ -204,6 +226,68 @@ fn test_0x2() {
     c8.decode().unwrap();
     assert_eq!(c8.pc, 0x111);
     assert_eq!(c8.stack[0], 0x202);
+}
+
+#[test]
+fn test_se_and_sne() {
+    let mut c8 = Chip8::new();
+    // 0x3
+    c8.memory[0x200] = 0x30;
+    c8.memory[0x201] = 0x22;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x202);
+
+    c8.registers[0x0] = 0x22;
+    c8.pc = 0x200;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x204);
+
+    c8.pc = 0x200;
+
+    // 0x4
+    c8.memory[0x200] = 0x40;
+    c8.memory[0x201] = 0x33;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x204);
+
+    c8.registers[0x0] = 0x33;
+    c8.pc = 0x200;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x202);
+
+    // 0x5
+    c8.registers[0x1] = 0x33;
+    c8.memory[0x200] = 0x50;
+    c8.memory[0x201] = 0x10;
+    c8.pc = 0x200;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x204);
+
+    c8.pc = 0x200;
+    c8.registers[0x1] = 0x44;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x202);
+
+    // 0x9
+    c8.registers[0x1] = 0x55;
+    c8.memory[0x200] = 0x90;
+    c8.memory[0x201] = 0x10;
+    c8.pc = 0x200;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x204);
+
+    c8.pc = 0x200;
+    c8.registers[0x0] = 0x55;
+
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x202);
 }
 
 #[test]
