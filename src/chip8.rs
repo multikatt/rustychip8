@@ -27,7 +27,7 @@ impl Chip8 {
         let width = 64;
         let height = 32;
         let memory = vec![0; 4096];
-        let stack = vec![0; 16];
+        let stack = vec![];
         let registers = vec![0; 16];
         let display = vec![false; 2048];
         let index = 0x0;
@@ -193,7 +193,6 @@ fn test_0x1() {
     assert_eq!(c8.pc, 0x200);
     c8.decode().unwrap();
     assert_eq!(c8.pc, 0x111);
-    assert_eq!(c8.stack[0], 0x00);
 }
 
 #[test]
@@ -202,7 +201,6 @@ fn test_0x2() {
     c8.memory[0x200] = 0x21;
     c8.memory[0x201] = 0x11;
     assert_eq!(c8.pc, 0x200);
-    assert_eq!(c8.stack[0], 0x00);
     c8.decode().unwrap();
     assert_eq!(c8.pc, 0x111);
     assert_eq!(c8.stack[0], 0x202);
