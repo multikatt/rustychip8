@@ -174,3 +174,48 @@ impl Chip8 {
         Ok(())
     }
 }
+
+#[test]
+fn test_0x00e0() {
+    let mut c8 = Chip8::new();
+    c8.memory[0x200] = 0x00;
+    c8.memory[0x201] = 0xe0;
+    c8.display[10] = true;
+    c8.decode().unwrap();
+    assert_eq!(c8.display[10], false);
+}
+
+#[test]
+fn test_0x1() {
+    let mut c8 = Chip8::new();
+    c8.memory[0x200] = 0x11;
+    c8.memory[0x201] = 0x11;
+    assert_eq!(c8.pc, 0x200);
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x111);
+    assert_eq!(c8.stack[0], 0x00);
+}
+
+#[test]
+fn test_0x2() {
+    let mut c8 = Chip8::new();
+    c8.memory[0x200] = 0x21;
+    c8.memory[0x201] = 0x11;
+    assert_eq!(c8.pc, 0x200);
+    assert_eq!(c8.stack[0], 0x00);
+    c8.decode().unwrap();
+    assert_eq!(c8.pc, 0x111);
+    assert_eq!(c8.stack[16], 0x202);
+}
+
+#[test]
+fn test_0x7() {
+    let mut c8 = Chip8::new();
+    c8.memory[0x200] = 0x7;
+    c8.memory[0x201] = 0x1;
+    c8.registers[0x0] = 0x01;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.registers[0x0], 0x02);
+}
