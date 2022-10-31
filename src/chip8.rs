@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::{fs, io::Error};
 
 pub struct Chip8 {
@@ -250,6 +251,13 @@ impl Chip8 {
             0xa => {
                 println!("Set index register to {:#06x}", next & 0x0fff);
                 self.index = next & 0x0fff;
+            }
+            0xc => {
+                let vx = (next & 0x0f00) >> 8;
+                let nn = (next & 0x00ff) as u8;
+                let mut rng = rand::thread_rng();
+                let randval: u8 = rng.gen();
+                self.registers[vx as usize] = randval & nn;
             }
             0xd => {
                 let sprite_height = next & 0x000f;
