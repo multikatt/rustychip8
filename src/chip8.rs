@@ -11,9 +11,10 @@ pub struct Chip8 {
     index: u16,
     pc: u16,
     sp: u8,
+    pub key_pressed: Option<u8>,
     /*
-        delay timer
-        sound timer
+      delay timer
+      sound timer
     */
 }
 
@@ -34,7 +35,8 @@ impl Chip8 {
         let index = 0x0;
         let pc = 0x200;
         let sp = 0x0;
-        Self { width, height, memory, stack, registers, display, index, pc, sp }
+        let key_pressed = None;
+        Self { width, height, memory, stack, registers, display, index, pc, sp, key_pressed }
     }
 
     pub fn load_rom(&mut self, file_name: &str) -> Result<(), Error> {
@@ -270,6 +272,26 @@ impl Chip8 {
 
                 self.set_sprite(sprite_height, xcoord, ycoord);
             }
+            0xe => {
+                let cmd = next & 0x00ff;
+                let vx = (next & 0x0f00) >> 8;
+                let key = self.registers[vx as usize];
+                if !self.key_pressed.is_none() {
+                    match cmd {
+                        0x9E => {
+                            if key == self.key_pressed.unwrap() {
+                                self.pc += 0x02
+                            }
+                        }
+                        0xA1 => {
+                            if key != self.key_pressed.unwrap() {
+                                self.pc += 0x02
+                            }
+                        }
+                        _ => panic!("Unknown instruction"),
+                    }
+                }
+            }
             _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
         }
         Ok(())
@@ -442,6 +464,44 @@ fn test_0x8xy_5_and_7() {
     c8.decode().unwrap();
 
     assert_eq!(c8.registers[0x0], 0x02);
+}
+
+#[test]
+fn test_0xe() {
+    let mut c8 = Chip8::new();
+    // 9E
+    c8.registers[0x0] = 0x05;
+    c8.key_pressed = Some(0x01);
+    c8.memory[0x200] = 0xe0;
+    c8.memory[0x201] = 0x9e;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.pc, 0x202);
+
+    c8.key_pressed = Some(0x05);
+    c8.pc = 0x200;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.pc, 0x204);
+    // A1
+    c8.pc = 0x200;
+    c8.registers[0x0] = 0x05;
+    c8.key_pressed = Some(0x01);
+    c8.memory[0x200] = 0xe0;
+    c8.memory[0x201] = 0xa1;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.pc, 0x204);
+
+    c8.key_pressed = Some(0x05);
+    c8.pc = 0x200;
+
+    c8.decode().unwrap();
+
+    assert_eq!(c8.pc, 0x202);
 }
 
 #[test]
