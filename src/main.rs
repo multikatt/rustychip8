@@ -6,6 +6,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode, Scancode};
 use std::env;
 use std::time::Duration;
+use std::time::Instant;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -13,6 +14,8 @@ fn main() {
     let mut c8 = Chip8::new();
 
     let mut filename = &String::from("roms/tank.ch8");
+
+    let mut timer = Instant::now();
 
     if args.len() > 1 {
         filename = &args[1];
@@ -100,9 +103,15 @@ fn main() {
                 gfx.draw(&c8);
 
                 gfx.canvas.present();
-                ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
             }
             Err(()) => (),
+        }
+        ::std::thread::sleep(Duration::new(0, 100_000u32 / 60));
+         if timer.elapsed() > Duration::new(0, 16_000_000) {
+            if c8.delay_timer > 0x00 {
+                c8.delay_timer -= 0x01;
+            }
+            timer = Instant::now();
         }
     }
 }

@@ -12,10 +12,8 @@ pub struct Chip8 {
     pc: u16,
     sp: u8,
     pub key_pressed: Option<u8>,
-    /*
-      delay timer
-      sound timer
-    */
+    pub delay_timer: u8,
+    sound_timer: u8,
 }
 
 impl Default for Chip8 {
@@ -36,7 +34,22 @@ impl Chip8 {
         let pc = 0x200;
         let sp = 0x0;
         let key_pressed = None;
-        Self { width, height, memory, stack, registers, display, index, pc, sp, key_pressed }
+        let delay_timer = 0x0;
+        let sound_timer = 0x0;
+        Self {
+            width,
+            height,
+            memory,
+            stack,
+            registers,
+            display,
+            index,
+            pc,
+            sp,
+            key_pressed,
+            delay_timer,
+            sound_timer,
+        }
     }
 
     pub fn load_rom(&mut self, file_name: &str) -> Result<(), Error> {
@@ -281,6 +294,23 @@ impl Chip8 {
                         }
                         _ => panic!("Unknown instruction"),
                     }
+                }
+            }
+            0xf => {
+                let vx = (next & 0x0f00) >> 8;
+                let cmd = next & 0x00ff;
+
+                match cmd {
+                    0x07 => {
+                        self.registers[vx as usize] = self.delay_timer;
+                    }
+                    0x15 => {
+                        self.delay_timer = self.registers[vx as usize];
+                    }
+                    0x18 => {
+                        self.sound_timer = self.registers[vx as usize];
+                    }
+                    _ => panic!("Unknown instruction"),
                 }
             }
             _ => println!("{:#06x} {:#06x} not implemented!", cat, next),
