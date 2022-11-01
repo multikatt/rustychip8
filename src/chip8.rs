@@ -184,18 +184,9 @@ impl Chip8 {
 
                 match cmd {
                     0 => self.registers[vx as usize] = self.registers[vy as usize],
-                    1 => {
-                        self.registers[vx as usize] =
-                            self.registers[vx as usize] | self.registers[vy as usize]
-                    }
-                    2 => {
-                        self.registers[vx as usize] =
-                            self.registers[vx as usize] & self.registers[vy as usize]
-                    }
-                    3 => {
-                        self.registers[vx as usize] =
-                            self.registers[vx as usize] ^ self.registers[vy as usize]
-                    }
+                    1 => self.registers[vx as usize] |= self.registers[vy as usize],
+                    2 => self.registers[vx as usize] &= self.registers[vy as usize],
+                    3 => self.registers[vx as usize] ^= self.registers[vy as usize],
                     4 => {
                         let res = self.registers[vx as usize]
                             .overflowing_add(self.registers[vy as usize]);
@@ -276,7 +267,7 @@ impl Chip8 {
                 let cmd = next & 0x00ff;
                 let vx = (next & 0x0f00) >> 8;
                 let key = self.registers[vx as usize];
-                if !self.key_pressed.is_none() {
+                if self.key_pressed.is_some() {
                     match cmd {
                         0x9E => {
                             if key == self.key_pressed.unwrap() {
